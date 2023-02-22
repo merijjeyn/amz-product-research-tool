@@ -27,6 +27,6 @@ func processProduct(prodData map[string]interface{}) AmazonSearchAnalysisProduct
 	ratingString, ratingOk := prodData["productRating"].(string)
 
 	if !priceOk || !reviewOk || !ratingOk {
-
+		// !!LEFT HERE
 	}
 }
