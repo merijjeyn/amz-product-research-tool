@@ -1,11 +1,8 @@
 import './App.css';
 
 import Homepage from './pages/Homepage';
-import Dashboard from './pages/Dashboard';
+import Dashboard from './pages/Dashboard/Dashboard';
 import Login from './pages/Login/Login';
-
-import Sidebar from './components/Sidebar/Sidebar';
-import SearchBar from './components/Searchbar/Searchbar';
 
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 

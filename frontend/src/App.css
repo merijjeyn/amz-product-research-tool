@@ -1,8 +1,0 @@
-.main-content {
-  position: relative;
-  left: 280px;
-  width: calc(100vw - 280px);
-  height: 100vh;
-  background-color: var(--tertiary-background);
-}
-

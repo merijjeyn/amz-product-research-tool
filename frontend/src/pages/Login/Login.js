@@ -1,10 +1,12 @@
-import React from 'react';
-import login from '../../util/api';
+import React, { useState } from 'react';
+import { login } from '../../util/api';
+import { parseJwt } from '../../util/misc'
+import { loginAction } from './authSlice';
 import './Login.css';
 
 import { GoogleLogin } from '@react-oauth/google';
 import { useDispatch, useSelector } from 'react-redux';
-import { loginAction } from './authSlice';
+
 
 
 const Login = () => {
@@ -16,10 +18,18 @@ const Login = () => {
   }
 
   const responseGoogle = (response) => {
-    console.log(response);
-    dispatch(loginAction());
     const { credential } = response;
-    window.location.replace('/dashboard');
+    const data = parseJwt(credential)
+    
+    login(data.email, data.name, data.sub).then((success) => {
+      if(success) {
+        dispatch(loginAction());
+        window.location.replace('/dashboard');
+      }
+      else {
+        window.alert("Something went wrong while logging in");
+      }
+    });
   };
 
   return (
