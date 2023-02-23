@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"example/hello/db"
 	"fmt"
 
 	"github.com/gofiber/fiber/v2"
@@ -21,9 +22,9 @@ func login(c *fiber.Ctx) error {
 		return e
 	}
 
-	_, err := getUserWithGid(payload.Gid)
+	_, err := db.GetUserWithGid(payload.Gid)
 	if err == sql.ErrNoRows {
-		insertUserIntoDB(payload.Email, payload.Name, payload.Gid)
+		db.InsertUserIntoDB(payload.Email, payload.Name, payload.Gid)
 	} else if err != nil {
 		e := fmt.Errorf("handlers.login:: getUserWithCredentialFailed:\n%v", err)
 		fmt.Print(e)
@@ -34,7 +35,7 @@ func login(c *fiber.Ctx) error {
 }
 
 func authenticateUser(gid string) bool {
-	_, err := getUserWithGid(gid)
+	_, err := db.GetUserWithGid(gid)
 	if err != nil {
 		fmt.Printf("handlers.authenticateUser: \n%v", err)
 		return false
@@ -56,11 +57,21 @@ func analyseSearchTerms(c *fiber.Ctx) error {
 
 	amzApiRespMap, err := searchProductsAxesso(payload.SearchText, payload.DomainCode, 1, true)
 	if err != nil {
-		e := fmt.Errorf("handlers.analyseSearchTerms: Something went wrong fetching info from amazon product data api:%v\n", err)
+		e := fmt.Errorf("handlers.analyseSearchTerms: Error fetching info from amazon product data api:\n%v", err)
 		fmt.Println(e)
 		return e
 	}
 
-	result := analyseAmazonSearch(amzApiRespMap)
+	result := analyseAmazonSearch(&amzApiRespMap)
+
+	resultMap, err := convertStructIntoMap(result)
+	if err != nil {
+		e := fmt.Errorf("handlers.analyseSearchTerms: Error converting result into map:\n%v", err)
+		fmt.Println(e)
+		return e
+	}
+
+	err = db.SaveData_MDB("searchAnalysisResults", payload.SearchText, resultMap)
+
 	return c.JSON(result)
 }

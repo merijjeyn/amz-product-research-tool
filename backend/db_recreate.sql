@@ -7,3 +7,10 @@ CREATE TABLE users (
 
 INSERT INTO users(email, username, credential)
 	VALUES ('testemail', 'testusername', 'testcredential');
+
+
+CREATE TABLE user_searches (
+  entry_id SERIAL PRIMARY KEY,
+  user_id INT NOT NULL,
+  search_text TEXT NOT NULL
+);

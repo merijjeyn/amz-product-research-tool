@@ -1,23 +1,17 @@
 package main
 
 import (
-	"database/sql"
-	"fmt"
+	"example/hello/db"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	_ "github.com/lib/pq"
 )
 
-var db *sql.DB
-
 func main() {
-	var err error
-	db, err = sql.Open("postgres", "host=localhost port=5432 user=postgres password=admin dbname=postgres sslmode=disable")
-	if err != nil {
-		fmt.Print("Cannot open database connection: " + err.Error())
-		return
-	}
+	db.InitializePostgreDB()
+	db.ConnectToMongoDB()
+	defer db.DisconnectFromMongoDB()
 
 	app := fiber.New()
 
