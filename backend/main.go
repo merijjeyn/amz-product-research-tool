@@ -27,6 +27,8 @@ func main() {
 	})
 	app.Post("/login", login)
 	app.Post("/analyse_search_terms", analyseSearchTerms)
+	app.Post("/get_user_searches", getUserSearches)
+	app.Post("/get_user_search_analysis", getUserSearchAnalysis)
 
 	app.Listen(":8080")
 }

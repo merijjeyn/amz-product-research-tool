@@ -45,6 +45,7 @@ func authenticateUser(gid string) bool {
 
 func analyseSearchTerms(c *fiber.Ctx) error {
 	payload := struct {
+		Gid        string `json:"gid"`
 		SearchText string `json:"searchText"`
 		DomainCode string `json:"domainCode"`
 	}{}
@@ -53,6 +54,10 @@ func analyseSearchTerms(c *fiber.Ctx) error {
 		e := fmt.Errorf("handlers.analyseSearchTerms: Request body could not be parsed:\n%v", err)
 		fmt.Println(e)
 		return e
+	}
+
+	if !authenticateUser(payload.Gid) {
+		return fmt.Errorf("handlers.analyseSearchTerms: Error authenticating user with google id")
 	}
 
 	amzApiRespMap, err := searchProductsAxesso(payload.SearchText, payload.DomainCode, 1, true)
@@ -72,6 +77,73 @@ func analyseSearchTerms(c *fiber.Ctx) error {
 	}
 
 	err = db.SaveData_MDB("searchAnalysisResults", payload.SearchText, resultMap)
+	if err != nil {
+		e := fmt.Errorf("handlers.analyseSearchTerms: Error saving analysis on mongodb:\n%v", err)
+		fmt.Println(e)
+		return e
+	}
+
+	err = db.InsertUserSearchEntryIntoDB_SQL(payload.Gid, payload.SearchText)
+	if err != nil {
+		e := fmt.Errorf("handlers.analyseSearchTerms: Error saving user search to sql:\n%v", err)
+		fmt.Println(e)
+		return e
+	}
 
 	return c.JSON(result)
+}
+
+func getUserSearches(c *fiber.Ctx) error {
+	payload := struct {
+		Gid string `json:"gid"`
+	}{}
+
+	if err := c.BodyParser(&payload); err != nil {
+		e := fmt.Errorf("handlers.getUserSearches: Request body could not be parsed:\n%v", err)
+		fmt.Println(e)
+		return e
+	}
+
+	if !authenticateUser(payload.Gid) {
+		e := fmt.Errorf("handlers.getUserSearches: Error authenticating user with google id")
+		fmt.Println(e)
+		return e
+	}
+
+	searches, err := db.GetUserSearches_SQL(payload.Gid)
+	if err != nil {
+		e := fmt.Errorf("handlers.getUserSearches: Error getting users from sql:\n%v", err)
+		fmt.Println(e)
+		return e
+	}
+
+	return c.JSON(searches)
+}
+
+func getUserSearchAnalysis(c *fiber.Ctx) error {
+	payload := struct {
+		Gid        string `json:"gid"`
+		SearchText string `json:"searchText"`
+	}{}
+
+	if err := c.BodyParser(&payload); err != nil {
+		e := fmt.Errorf("handlers.getUserSearchAnalysis: Request body could not be parsed:\n%v", err)
+		fmt.Println(e)
+		return e
+	}
+
+	if !authenticateUser(payload.Gid) {
+		e := fmt.Errorf("handlers.getUserSearchAnalysis: Error authenticating user with google id")
+		fmt.Println(e)
+		return e
+	}
+
+	res, err := db.FetchSearchAnalysis_MDB(payload.SearchText)
+	if err != nil {
+		e := fmt.Errorf("handlers.getUserSearchAnalysis: Error fetching analysis from mongo:\n%v", err)
+		fmt.Println(e)
+		return e
+	}
+
+	return c.JSON(res["data"])
 }

@@ -49,8 +49,8 @@ func searchProductsAxesso(searchText string, domainCode string, page int, exclud
 			return nil, fmt.Errorf("api.SearchProductsAxesso: Error creating new request:\n%v", err)
 		}
 
-		req.Header.Add("X-RapidAPI-Key", "1a286522e7mshb6e48f0e32c3f44p1c4440jsnff3a804db90e")
-		req.Header.Add("X-RapidAPI-Host", "axesso-axesso-amazon-data-service-v1.p.rapidapi.com")
+		req.Header.Add("X-RapidAPI-Key", "")
+		req.Header.Add("X-RapidAPI-Host", "")
 
 		res, err := http.DefaultClient.Do(req)
 		if err != nil {

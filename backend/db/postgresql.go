@@ -47,14 +47,40 @@ func InsertUserIntoDB(email string, username string, gid string) error {
 	return nil
 }
 
-func InsertUserSearchEntryIntoDB_SQL(user_id int, mongo_document_id string) error {
-	if user_id == 0 || mongo_document_id == "" {
+func InsertUserSearchEntryIntoDB_SQL(gid string, searchText string) error {
+	if gid == "" || searchText == "" {
 		return fmt.Errorf("db/postgresql.InsertUserSearchEntryIntoDB_SQL: Invalid parameters")
 	}
 
-	_, err := db.Exec("INSERT INTO user_searches (user_id, mongo_document_id) VALUES ($1, $2)", user_id, mongo_document_id)
+	_, err := db.Exec("INSERT INTO user_searches (user_id, search_text) VALUES ($1, $2)", gid, searchText)
 	if err != nil {
 		return fmt.Errorf("db/postgresql.InsertUserSearchEntryIntoDB_SQL: failed inserting user_search into db:\n%v", err)
 	}
 	return nil
+}
+
+func GetUserSearches_SQL(gid string) ([]string, error) {
+	if gid == "" {
+		return nil, fmt.Errorf("postgresql.GetUserSearches_SQL: Invalid parameters")
+	}
+
+	rows, err := db.Query("select search_text from user_searches where user_id = $1", gid)
+	if err == sql.ErrNoRows {
+		return []string{}, nil
+	} else if err != nil {
+		return nil, fmt.Errorf("postgresql.GetUserSearches_SQL: error executing sql query:\n%v", err)
+	}
+	defer rows.Close()
+
+	result := []string{}
+	for rows.Next() {
+		var searchText string
+
+		if err := rows.Scan(&searchText); err != nil {
+			return nil, fmt.Errorf("postgresql.GetUserSearches_SQL: error scanning row:\n%v", err)
+		}
+		result = append(result, searchText)
+	}
+
+	return result, nil
 }

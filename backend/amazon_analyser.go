@@ -1,6 +1,10 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"strconv"
+	"strings"
+)
 
 func analyseAmazonSearch(amzApiRespMap *map[string]interface{}) AmazonSearchAnalysis {
 	var result AmazonSearchAnalysis
@@ -18,21 +22,35 @@ func processProducts(amzApiRespMap *map[string]interface{}, res *AmazonSearchAna
 
 	for _, prod := range searchProductDetails {
 		processedProd := processProduct(prod)
-		res.Products = append(res.Products, *processedProd)
+		res.Products = append(res.Products, processedProd)
 	}
 
 	return nil
 }
 
-func processProduct(prodData map[string]interface{}) *AmazonSearchAnalysisProductEntry {
-	// var res AmazonSearchAnalysisProductEntry
+func processProduct(prodData map[string]interface{}) AmazonSearchAnalysisProductEntry {
+	var res AmazonSearchAnalysisProductEntry
 
-	// price, priceOk := prodData["price"].(float64)
-	// reviewCount, reviewOk := prodData["countReview"].(int)
-	// ratingString, ratingOk := prodData["productRating"].(string)
+	price, ok := prodData["price"].(float64)
+	if ok {
+		res.Price = price
+	}
 
-	// if !priceOk || !reviewOk || !ratingOk {
-	// 	// !!LEFT HERE
-	// }
-	return new(AmazonSearchAnalysisProductEntry)
+	reviewCount, ok := prodData["countReview"].(int)
+	if ok {
+		res.Reviews = reviewCount
+	}
+
+	ratingString, ok := prodData["productRating"].(string)
+	if ok {
+		splitted := strings.Split(ratingString, " ")
+		if len(splitted) > 0 {
+			rating, error := strconv.ParseFloat(splitted[0], 64)
+			if error == nil {
+				res.Rating = rating
+			}
+		}
+	}
+
+	return res
 }

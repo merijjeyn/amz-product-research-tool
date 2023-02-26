@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -50,4 +51,19 @@ func SaveData_MDB(collectionName string, key string, data map[string]interface{}
 	}
 
 	return nil
+}
+
+func FetchSearchAnalysis_MDB(searchText string) (map[string]interface{}, error) {
+	if searchText == "" {
+		return nil, fmt.Errorf("mongo.FetchSearchAnalysis_MDB: Invalid parameters")
+	}
+
+	collection := database.Collection("searchAnalysisResults")
+
+	var res bson.M
+	if err := collection.FindOne(context.Background(), bson.M{"key": searchText}).Decode(&res); err != nil {
+		return nil, fmt.Errorf("mongo.FetchSearchAnalysis_MDB: error fetching from mongo:\n%v", err)
+	}
+
+	return res, nil
 }
